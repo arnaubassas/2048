@@ -24,7 +24,31 @@ export default () => {
 
     const [map, setMap] = useState(initialMap);
 
+    function moviment(arrayEntrada, reverse) {
+        let arraySortida = [];
+        if (reverse) {
+            arrayEntrada.reverse();
+        }
+        const aux = arrayEntrada.filter(e => e);
+        for (let i = 0; i < aux.length; i++) {
+            if (aux[i] == aux[i + 1]) {
+                arraySortida.push(aux[i] + aux[i + 1]);
+                i++;
+            } else {
+                arraySortida.push(aux[i]);
+            }
+        }
+        if (!arraySortida) {
+            arraySortida = [...aux];
+        }
+        return arraySortida;
+    }
 
+    const handleKeyDown = (event) => {
+        if (event.keycode === 37) {
+            console.log("fletxa esquerra")
+        }
+    }
     function gameOver() {
         let finish = false;
 
@@ -32,73 +56,11 @@ export default () => {
     }
 
     function win(array) {
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < array.length; i++) {
             if (array[i] == 2048) {
                 return true;
             }
         }
-    }
-
-    function moviment(array, reverse) {
-        if (reverse) {
-            array.reverse();
-        }
-
-        let array2;
-        let contadorDeCero = 0
-        for (let j = 0; j < 4; j++) {
-            if (array[j] == 0) {
-                contadorDeCero++;
-            }
-        }
-
-        if (contadorDeCero == 0) {
-            const aux = array.filter(e => e !== 0);
-            if (aux[0] == aux[1]) {
-                if (aux[2] == aux[3]) {
-                    array2 = [(aux[0] + aux[1]), (aux[2] + aux[3])]
-                } else {
-                    array2 = [(aux[0] + aux[1]), aux[2], aux[3]]
-                }
-            } else if (aux[1] == aux[2]) {
-                array2 = [aux[0], (aux[1] + aux[2]), aux[3]]
-            } else if (aux[2] == aux[3]) {
-                array2 = [aux[0], aux[1], (aux[2] + aux[3])]
-            } else {
-                array2 = [...aux]
-            }
-        }
-
-        if (contadorDeCero == 1) {
-            const aux = array.filter(e => e !== 0);
-            if (aux[0] == aux[1]) {
-                array2 = [(aux[0] + aux[1]), aux[2]]
-            } else if (aux[1] == aux[2]) {
-                array2 = [aux[0], (aux[1] + aux[2])]
-            } else {
-                array2 = [...aux]
-            }
-        }
-
-        if (contadorDeCero == 2) {
-            const aux = array.filter(e => e !== 0);
-            if (aux[0] == aux[1]) {
-                array2 = [aux[0] + aux[1]];
-            } else {
-                array2 = [...aux];
-            }
-        }
-
-        if (contadorDeCero == 3) {
-            const aux = array.filter(e => e !== 0);
-            array2 = [...aux];
-        }
-
-        if (contadorDeCero == 4) {
-            array2 = [...array];
-        }
-
-        return array2;
     }
 
     const up = () => {
@@ -198,7 +160,7 @@ export default () => {
 
     return (
         <>
-            <div className="w-1/2 m-auto grid gap-8 grid-cols-4 ">
+            <div className="w-1/2 m-auto grid gap-8 grid-cols-4" onKeyDown={handleKeyDown} tabIndex={0}>
                 {map.map((e, i) => <Box key={i} value={e} />)}
 
                 <button className="w-full bg-slate-300 rounded-xl h-20 flex justify-center items-center" onClick={left}>
