@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Box = ({ value }) => (
     <div className="p-4 h-full w-full border rounded-xl bg-slate-500">
@@ -23,6 +23,117 @@ initialMap[randomOf(freePositions(initialMap))] = 2;
 export default () => {
 
     const [map, setMap] = useState(initialMap);
+    const [size, setSize] = useState(4);
+
+    const detectkeydown = (e) => {
+        let key = e.key.slice(5).toLowerCase();
+        let map2
+        if (e.key === "ArrowDown") {
+            map2 = arrayModify("down");
+        }
+        if (e.key === "ArrowUp") {
+            map2 = arrayModify("up");
+        }
+        if (e.key === "ArrowRight") {
+            map2 = arrayModify("right");
+
+        }
+        if (e.key === "ArrowLeft") {
+            map2 = arrayModify("left");
+        }
+        verify(map2);
+    }
+
+    const verify = (map2) => {
+        if (JSON.stringify(map2) !== JSON.stringify(map)) {
+            map2[randomOf(freePositions(map2))] = 2;
+            setMap(map2);
+        }
+    }
+
+    useEffect(() => {
+        document.addEventListener('keydown', detectkeydown, true)
+        return () => document.removeEventListener('keydown', detectkeydown, true)
+    }, [detectkeydown]);
+
+    // optimitzar amb detectkeydown com a useCallback
+    const arrayModify = (mov) => {
+        let matriz = []
+        const numCells = size * size
+        if (mov === "right" || mov === "left") {
+            for (let j = 0; j < size; j++) {
+                matriz[j] = []
+                for (let i = (j * size); i < (size + (size * j)); i++) {
+                    matriz[j].push(map[i]);
+                }
+            }
+            matriz = moviment2(matriz, mov);
+        }
+
+        if (mov === "up" || mov === "down") {
+            for (let j = 0; j < size; j++) {
+                matriz[j] = []
+                for (let i = j; i < numCells; i += 4) {
+                    matriz[j].push(map[i])
+                }
+            }
+            matriz = moviment2(matriz, mov);
+        }
+        return matriz
+    }
+
+    function moviment2(arrayEntrada, mov) {
+        let arraySortida = [];
+        let operacions = []
+        let buffer
+        let aux = []
+        for (let j = 0; j < size; j++) {
+            operacions[j] = [];
+            aux = arrayEntrada[j].filter(e => e);
+            if (mov === "down" || mov === "right") {
+                aux = aux.reverse();
+            }
+            for (let i = 0; i < aux.length; i++) {
+                if (aux[i] == aux[i + 1]) {
+                    operacions[j].push(aux[i] + aux[i + 1]);
+                    i++;
+                } else {
+                    operacions[j].push(aux[i]);
+                }
+            }
+
+        }
+        if (!operacions) {
+            operacions = [...arrayEntrada];
+        }
+        for (let j = 0; j < size; j++) {
+            for (let i = 0; i < size; i++) {
+                if (operacions[j][i] == undefined) {
+                    operacions[j][i] = 0;
+                }
+            }
+        }
+
+        if (mov === "down" || mov === "right") {
+            buffer = operacions.map(e => e.reverse());
+        } else {
+            buffer = [...operacions]
+        }
+
+        if (mov === "down" || mov === "up") {
+            for (let j = 0; j < size; j++) {
+                for (let i = 0; i < size; i++) {
+                    arraySortida.push(operacions[i][j]);
+                }
+            }
+        }
+        if (mov === "left" || mov === "right") {
+            arraySortida = buffer.flat();
+        }
+        return arraySortida;
+    }
+
+    // funcions funcionals 4x4
 
     function moviment(arrayEntrada, reverse) {
         let arraySortida = [];
@@ -44,11 +155,6 @@ export default () => {
         return arraySortida;
     }
 
-    const handleKeyDown = (event) => {
-        if (event.keycode === 37) {
-            console.log("fletxa esquerra")
-        }
-    }
     function gameOver() {
         let finish = false;
 
@@ -62,6 +168,8 @@ export default () => {
             }
         }
     }
+
+
 
     const up = () => {
 
@@ -160,7 +268,7 @@ export default () => {
 
     return (
         <>
-            <div className="w-1/2 m-auto grid gap-8 grid-cols-4" onKeyDown={handleKeyDown} tabIndex={0}>
+            <div className="w-1/2 m-auto grid gap-8 grid-cols-4" >
                 {map.map((e, i) => <Box key={i} value={e} />)}
 
                 <button className="w-full bg-slate-300 rounded-xl h-20 flex justify-center items-center" onClick={left}>
